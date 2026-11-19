@@ -51,11 +51,55 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #FAF5F0; }
         ::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 3px; }
+
+        /* Elegant opening invitation text sequence */
+        .intro-overlay {
+            position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+            padding: 24px; text-align: center; color: #fffaf0;
+            background: radial-gradient(circle at center, rgba(110, 75, 36, .96), rgba(35, 25, 22, .99));
+            animation: introOverlayOut .8s ease 13s forwards;
+        }
+        .intro-line { position: absolute; width: min(92vw, 680px); opacity: 0; animation: introText 3s ease both; }
+        .intro-line.one { animation-delay: 0s; animation-duration: 3s; }
+        .intro-line.two { animation-delay: 3s; animation-duration: 5s; }
+        .intro-line.three { animation-delay: 8s; animation-duration: 3s; }
+        .intro-line.four { animation-delay: 11s; animation-duration: 2s; }
+        .intro-invite { font-family: 'Moul', cursive; font-size: clamp(2rem, 7vw, 3.5rem); color: #f7d98b; text-shadow: 0 3px 18px rgba(0,0,0,.35); }
+        .intro-couple { font-family: 'Moul', cursive; font-size: clamp(1.25rem, 5vw, 2.25rem); line-height: 2; color: #fff8e8; }
+        .intro-heart { color: #f47b83; display: inline-block; padding: 0 .15em; animation: heartBeat 1s ease-in-out infinite; }
+        .intro-date { font-family: 'Moul', cursive; font-size: clamp(1.2rem, 4.7vw, 2rem); line-height: 1.9; color: #f7d98b; }
+        .intro-time { font-family: 'Kantumruy Pro', sans-serif; font-size: clamp(1.3rem, 5vw, 2.2rem); font-weight: 700; color: #fff8e8; }
+        .intro-skip { position: absolute; bottom: max(24px, env(safe-area-inset-bottom)); right: 24px; border: 1px solid rgba(247,217,139,.6); border-radius: 999px; padding: 8px 16px; color: #f7d98b; font-size: 13px; background: rgba(255,255,255,.08); }
+        @keyframes introText { 0% { opacity: 0; transform: translateY(18px) scale(.97); } 12% { opacity: 1; transform: translateY(0) scale(1); } 82% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-14px) scale(1.02); } }
+        @keyframes introOverlayOut { to { opacity: 0; visibility: hidden; pointer-events: none; } }
+        @keyframes heartBeat { 0%,100% { transform: scale(1); } 50% { transform: scale(1.22); } }
     </style>
 </head>
 <body class="relative">
 
+    <!-- Opening invitation: 3s + 5s + 3s + 2s = 13 seconds -->
+    <div id="invitationIntro" class="intro-overlay" aria-label="ពាក្យអញ្ជើញចូលរួមពិធីភ្ជាប់ពាក្យ">
+        <div class="intro-line one"><div class="intro-invite">សូមអញ្ជើញ</div></div>
+        <div class="intro-line two"><div class="intro-couple">ពិធីភ្ជាប់ពាក្យ<br>ផែ វិសាល <span class="intro-heart">♥</span> រិន ស្រីតី</div></div>
+        <div class="intro-line three"><div class="intro-date">ថ្ងៃអាទិត្យ ទី០៦ ខែធ្នូ ឆ្នាំ២០២៦</div></div>
+        <div class="intro-line four"><div class="intro-time">វេលាម៉ោង ៧:០០ ព្រឹក តទៅ</div></div>
+        <button class="intro-skip" type="button" onclick="skipInvitationIntro()">រំលង</button>
+    </div>
+
+
     <div id="petals-container" class="fixed inset-0 pointer-events-none z-50 overflow-hidden"></div>
+
+
+    <script>
+        function skipInvitationIntro() {
+            const intro = document.getElementById('invitationIntro');
+            if (!intro) return;
+            intro.style.animation = 'none';
+            intro.style.opacity = '0';
+            intro.style.visibility = 'hidden';
+            intro.style.pointerEvents = 'none';
+        }
+    </script>
 
     <!-- Hidden YouTube Player Container -->
     <div id="youtube-player" class="hidden"></div>
@@ -198,7 +242,7 @@
             <!-- Featured Memory Videos -->
             <div class="grid grid-cols-1 gap-5 mb-7">
                 <article class="rounded-2xl overflow-hidden bg-white border border-amber-200 shadow-lg">
-                    <div class="relative bg-stone-900 aspect-video">
+                    <div class="relative bg-stone-900 aspect-[9/16] sm:aspect-video">
                         <iframe
                             class="absolute inset-0 w-full h-full"
                             src="https://drive.google.com/file/d/1DmlN-op0ESZe9VugGTDkkLjv4DsD06kF/preview"
@@ -216,7 +260,7 @@
                 </article>
 
                 <article class="rounded-2xl overflow-hidden bg-white border border-amber-200 shadow-lg">
-                    <div class="relative bg-stone-900 aspect-video">
+                    <div class="relative bg-stone-900 aspect-[9/16] sm:aspect-video">
                         <iframe
                             class="absolute inset-0 w-full h-full"
                             src="https://drive.google.com/file/d/17J_R4H3Ez-7Lt-tPWHZgvaansivxIk1y/preview"
