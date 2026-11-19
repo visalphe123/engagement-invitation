@@ -178,25 +178,9 @@
             startMemoryVideo(number);
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const videoArea = document.getElementById('loveVideoArea');
-            if (!videoArea || !('IntersectionObserver' in window)) return;
+        // Video autoplay is intentionally disabled. Visitors start a video
+        // only by tapping its Play button; music remains independent.
 
-            // Start loading shortly before the card enters the screen,
-            // so the video is already buffering when the visitor reaches it.
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach((entry) => {
-                    const number = Number(entry.target.dataset.memoryVideo);
-                    if (entry.isIntersecting) {
-                        startMemoryVideo(number);
-                    } else if (activeMemoryVideo === number) {
-                        stopMemoryVideo(number);
-                    }
-                });
-            }, { root: null, rootMargin: '650px 0px 650px 0px', threshold: 0 });
-
-            videoArea.querySelectorAll('[data-memory-video]').forEach((card) => observer.observe(card));
-        });
     </script>
 
     <!-- Hidden YouTube Player Container -->
@@ -463,7 +447,7 @@
         </section>
 
         <!-- Contact & Share Section -->
-        <section class="px-6 py-6 text-center space-y-4">
+        <section id="contactSection" class="px-6 py-6 text-center space-y-4">
             <div>
                 <h4 class="font-bold text-stone-800 text-sm mb-2">ព័ត៌មានទំនាក់ទំនង / Contact</h4>
                 <a href="tel:0962534821" class="text-amber-800 font-semibold text-sm hover:underline"><i class="fas fa-phone-alt mr-1"></i> 096 2534821</a>
@@ -549,7 +533,7 @@
                 width: '0',
                 videoId: youtubeVideoId,
                 playerVars: {
-                    'autoplay': 1,
+                    'autoplay': 0,
                     'playsinline': 1,
                     'controls': 0,
                     'loop': 1,
@@ -557,8 +541,7 @@
                 },
                 events: {
                     'onReady': function(event) {
-                        // Try autoplay on load. Audible autoplay may be blocked by the browser.
-                        event.target.playVideo();
+                        // Wait for the visitor's first interaction before starting music.
                     },
                     'onStateChange': onPlayerStateChange
                 }
@@ -585,7 +568,37 @@
             document.addEventListener('touchstart', startMusic, {capture: true, passive: true});
             document.addEventListener('keydown', startMusic, true);
         }
-        startMusicAfterFirstGesture();
+        // Start background music automatically after the visitor scrolls past
+        // the video section. If the browser blocks audible autoplay, the music
+        // button remains available for a single tap.
+        (function startMusicAfterPassingVideos() {
+            const videoArea = document.getElementById('loveVideoArea');
+            if (!videoArea || !('IntersectionObserver' in window)) return;
+            let started = false;
+            const musicObserver = new IntersectionObserver(() => {
+                if (started) return;
+                const rect = videoArea.getBoundingClientRect();
+                if (rect.bottom < 0 && ytPlayer && typeof ytPlayer.playVideo === 'function') {
+                    started = true;
+                    ytPlayer.unMute();
+                    ytPlayer.setVolume(75);
+                    ytPlayer.playVideo();
+                    musicObserver.disconnect();
+                }
+            }, { threshold: 0 });
+            musicObserver.observe(videoArea);
+            window.addEventListener('scroll', () => {
+                if (started) return;
+                const rect = videoArea.getBoundingClientRect();
+                if (rect.bottom < 0 && ytPlayer && typeof ytPlayer.playVideo === 'function') {
+                    started = true;
+                    ytPlayer.unMute();
+                    ytPlayer.setVolume(75);
+                    ytPlayer.playVideo();
+                    musicObserver.disconnect();
+                }
+            }, { passive: true });
+        })();
 
         function toggleAudio() {
             if (!ytPlayer || typeof ytPlayer.playVideo !== 'function') return;
@@ -749,7 +762,7 @@
             layer.setAttribute('aria-hidden', 'false');
             layer.querySelectorAll('.love-particle').forEach(el => el.remove());
             const symbols = kind === 'video' ? ['♥','♡','💗'] : ['💖','💗','💜','💛','💙','💚','❤️','💕'];
-            const count = kind === 'video' ? 22 : 32;
+            const count = kind === 'video' ? 22 : (kind === 'contactLove' ? 38 : 32);
             for (let i = 0; i < count; i++) {
                 const particle = document.createElement('span');
                 particle.className = 'love-particle';
@@ -770,6 +783,7 @@
                 layer.querySelectorAll('.love-particle').forEach(el => el.remove());
             }, 5100);
         }
+        let contactSequencePlayed = false;
         const observer = new IntersectionObserver(entries => {
             entries.forEach(entry => {
                 if (!entry.isIntersecting) return;
@@ -777,13 +791,21 @@
                     showLoveMessage('video', 'ខ្ញុំ ផែ វិសាល ស្រលាញ់អូន តី ណាស់');
                 } else if (entry.target.id === 'lovePhotoArea') {
                     showLoveMessage('photo', 'បេះដូងនេះ ប្រគល់អោយអូនហើយ');
+                } else if (entry.target.id === 'contactSection' && !contactSequencePlayed) {
+                    contactSequencePlayed = true;
+                    showLoveMessage('contactBlessing', 'ជូនពរជួបតែសំណាងល្អ សូមអរគុណ');
+                    setTimeout(() => {
+                        showLoveMessage('contactLove', 'ជួបគ្នាឆាប់ៗ! ❤️');
+                    }, 5100);
                 }
             });
         }, { threshold: 0.01, rootMargin: '-5% 0px -5% 0px' });
         const coupleSlideshow = document.getElementById('coupleSlideshow');
         const photoArea = document.getElementById('lovePhotoArea');
+        const contactSection = document.getElementById('contactSection');
         if (coupleSlideshow) observer.observe(coupleSlideshow);
         if (photoArea) observer.observe(photoArea);
+        if (contactSection) observer.observe(contactSection);
     })();
     </script>
 
