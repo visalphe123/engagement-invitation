@@ -59,6 +59,10 @@
             background: radial-gradient(circle at center, rgba(110, 75, 36, .96), rgba(35, 25, 22, .99));
             animation: introOverlayOut .8s ease 13s forwards;
         }
+        .intro-hearts { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+        .intro-falling-heart { position: absolute; top: -8vh; color: #ff9eae; opacity: 0; text-shadow: 0 2px 8px rgba(255,120,150,.35); animation: introHeartFall linear infinite; }
+        .intro-line, .intro-skip { z-index: 2; }
+        @keyframes introHeartFall { 0% { transform: translate3d(0,-8vh,0) rotate(0deg) scale(.75); opacity: 0; } 12% { opacity: .9; } 85% { opacity: .8; } 100% { transform: translate3d(35px,110vh,0) rotate(300deg) scale(1.15); opacity: 0; } }
         .intro-line { position: absolute; width: min(92vw, 680px); opacity: 0; animation: introText 3s ease both; }
         .intro-line.one { animation-delay: 0s; animation-duration: 3s; }
         .intro-line.two { animation-delay: 3s; animation-duration: 5s; }
@@ -79,6 +83,7 @@
 
     <!-- Opening invitation: 3s + 5s + 3s + 2s = 13 seconds -->
     <div id="invitationIntro" class="intro-overlay" aria-label="ពាក្យអញ្ជើញចូលរួមពិធីភ្ជាប់ពាក្យ">
+        <div id="introHearts" class="intro-hearts" aria-hidden="true"></div>
         <div class="intro-line one"><div class="intro-invite">សូមអញ្ជើញ</div></div>
         <div class="intro-line two"><div class="intro-couple">ពិធីភ្ជាប់ពាក្យ<br>ផែ វិសាល <span class="intro-heart">♥</span> រិន ស្រីតី</div></div>
         <div class="intro-line three"><div class="intro-date">ថ្ងៃអាទិត្យ ទី០៦ ខែធ្នូ ឆ្នាំ២០២៦</div></div>
@@ -98,6 +103,41 @@
             intro.style.opacity = '0';
             intro.style.visibility = 'hidden';
             intro.style.pointerEvents = 'none';
+        }
+
+        // Small romantic hearts gently fall during the opening text sequence.
+        (function createIntroHearts() {
+            const container = document.getElementById('introHearts');
+            if (!container) return;
+            for (let i = 0; i < 26; i++) {
+                const heart = document.createElement('span');
+                heart.className = 'intro-falling-heart';
+                heart.textContent = Math.random() > 0.35 ? '♥' : '♡';
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.fontSize = (9 + Math.random() * 13) + 'px';
+                heart.style.animationDuration = (6 + Math.random() * 7) + 's';
+                heart.style.animationDelay = (Math.random() * 9) + 's';
+                container.appendChild(heart);
+            }
+        })();
+
+        // Only load one Google Drive video at a time. Selecting the other
+        // video unloads the previous iframe, stopping its playback.
+        let activeMemoryVideo = 0;
+        function selectMemoryVideo(number) {
+            const first = document.getElementById('memoryVideo1');
+            const second = document.getElementById('memoryVideo2');
+            if (!first || !second) return;
+            const chosen = number === 1 ? first : second;
+            const other = number === 1 ? second : first;
+            other.src = 'about:blank';
+            if (activeMemoryVideo === number && chosen.src !== 'about:blank') {
+                chosen.src = 'about:blank';
+                activeMemoryVideo = 0;
+                return;
+            }
+            chosen.src = chosen.dataset.src;
+            activeMemoryVideo = number;
         }
     </script>
 
@@ -242,16 +282,9 @@
             <!-- Featured Memory Videos -->
             <div class="grid grid-cols-1 gap-5 mb-7">
                 <article class="rounded-2xl overflow-hidden bg-white border border-amber-200 shadow-lg">
+                    <button type="button" onclick="selectMemoryVideo(1)" class="w-full py-2.5 bg-amber-50 text-amber-800 text-xs font-bold border-b border-amber-100">▶ ចាក់វីដេអូអនុស្សាវរីយ៍ទី១</button>
                     <div class="relative bg-stone-900 aspect-[9/16] sm:aspect-video">
-                        <iframe
-                            class="absolute inset-0 w-full h-full"
-                            src="https://drive.google.com/file/d/1DmlN-op0ESZe9VugGTDkkLjv4DsD06kF/preview"
-                            title="Our Love Story Video 1"
-                            allow="autoplay; encrypted-media; picture-in-picture"
-                            allowfullscreen
-                            loading="lazy"
-                            referrerpolicy="no-referrer">
-                        </iframe>
+                        <iframe id="memoryVideo1" class="absolute inset-0 w-full h-full" src="about:blank" data-src="https://drive.google.com/file/d/1DmlN-op0ESZe9VugGTDkkLjv4DsD06kF/preview" title="Our Love Story Video 1" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy" referrerpolicy="no-referrer"></iframe>
                     </div>
                     <div class="px-4 py-3 text-center">
                         <p class="font-moul text-sm text-amber-800">អនុស្សាវរីយ៍ដ៏មានន័យ</p>
@@ -260,16 +293,9 @@
                 </article>
 
                 <article class="rounded-2xl overflow-hidden bg-white border border-amber-200 shadow-lg">
+                    <button type="button" onclick="selectMemoryVideo(2)" class="w-full py-2.5 bg-amber-50 text-amber-800 text-xs font-bold border-b border-amber-100">▶ ចាក់វីដេអូអនុស្សាវរីយ៍ទី២</button>
                     <div class="relative bg-stone-900 aspect-[9/16] sm:aspect-video">
-                        <iframe
-                            class="absolute inset-0 w-full h-full"
-                            src="https://drive.google.com/file/d/17J_R4H3Ez-7Lt-tPWHZgvaansivxIk1y/preview"
-                            title="Our Love Story Video 2"
-                            allow="autoplay; encrypted-media; picture-in-picture"
-                            allowfullscreen
-                            loading="lazy"
-                            referrerpolicy="no-referrer">
-                        </iframe>
+                        <iframe id="memoryVideo2" class="absolute inset-0 w-full h-full" src="about:blank" data-src="https://drive.google.com/file/d/17J_R4H3Ez-7Lt-tPWHZgvaansivxIk1y/preview" title="Our Love Story Video 2" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy" referrerpolicy="no-referrer"></iframe>
                     </div>
                     <div class="px-4 py-3 text-center">
                         <p class="font-moul text-sm text-amber-800">ពេលវេលាដែលមិនអាចបំភ្លេចបាន</p>
