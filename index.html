@@ -82,7 +82,8 @@
         .love-surprise-layer { position: fixed; inset: 0; z-index: 95; display: flex; align-items: center; justify-content: center; padding: 22px; pointer-events: none; opacity: 0; visibility: hidden; }
         .love-surprise-layer.show { visibility: visible; animation: loveSurpriseFade 3s ease both; }
         .love-surprise-card { position: relative; max-width: 92vw; padding: 22px 24px; border: 1px solid rgba(245, 190, 205, .9); border-radius: 24px; background: linear-gradient(145deg, rgba(255,250,246,.96), rgba(255,235,240,.94)); box-shadow: 0 14px 50px rgba(100,35,55,.25); text-align: center; transform: scale(.78); animation: loveCardPop .55s cubic-bezier(.2,.9,.25,1.25) both; }
-        .love-surprise-text { font-family: 'Moul', cursive; color: #9b3156; font-size: clamp(1.15rem, 5vw, 2rem); line-height: 1.9; text-shadow: 0 2px 0 #fff; }
+        .love-surprise-text { font-family: 'Moul', cursive; color: #9b3156; font-size: clamp(1.15rem, 5vw, 2rem); line-height: 1.9; text-shadow: 0 2px 0 #fff; animation: loveTextReveal .7s cubic-bezier(.2,.9,.25,1.2) both; }
+        @keyframes loveTextReveal { 0% { opacity: 0; transform: translateY(14px) scale(.72); filter: blur(5px); } 75% { opacity: 1; transform: translateY(-2px) scale(1.04); filter: blur(0); } 100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
         .love-particle { position: absolute; left: 50%; top: 50%; font-size: 24px; opacity: 0; will-change: transform, opacity; }
         .love-surprise-layer.burst .love-particle { animation: heartBurst 2.6s cubic-bezier(.15,.65,.25,1) both; }
         .love-surprise-layer.fly .love-particle { animation: heartFly 2.8s ease-out both; }
@@ -740,7 +741,7 @@
             if (played.has(kind)) return;
             played.add(kind);
             clearTimeout(hideTimer);
-            layer.className = 'love-surprise-layer ' + (kind === 'video' ? 'burst' : 'fly');
+            layer.className = 'love-surprise-layer show ' + (kind === 'video' ? 'burst' : 'fly');
             text.textContent = message;
             layer.setAttribute('aria-hidden', 'false');
             layer.querySelectorAll('.love-particle').forEach(el => el.remove());
@@ -775,7 +776,7 @@
                     showLoveMessage('photo', 'បេះដូងនេះ ប្រគល់អោយអូនហើយ');
                 }
             });
-        }, { threshold: [0.22, 0.35] });
+        }, { threshold: [0.12, 0.22], rootMargin: '-8% 0px -8% 0px' });
         const videoArea = document.getElementById('loveVideoArea');
         const photoArea = document.getElementById('lovePhotoArea');
         if (videoArea) observer.observe(videoArea);
