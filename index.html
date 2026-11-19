@@ -181,16 +181,19 @@
         document.addEventListener('DOMContentLoaded', () => {
             const videoArea = document.getElementById('loveVideoArea');
             if (!videoArea || !('IntersectionObserver' in window)) return;
+
+            // Start loading shortly before the card enters the screen,
+            // so the video is already buffering when the visitor reaches it.
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach((entry) => {
                     const number = Number(entry.target.dataset.memoryVideo);
-                    if (entry.isIntersecting && entry.intersectionRatio >= 0.55) {
+                    if (entry.isIntersecting) {
                         startMemoryVideo(number);
                     } else if (activeMemoryVideo === number) {
                         stopMemoryVideo(number);
                     }
                 });
-            }, { threshold: [0, 0.55, 0.8] });
+            }, { root: null, rootMargin: '650px 0px 650px 0px', threshold: 0 });
 
             videoArea.querySelectorAll('[data-memory-video]').forEach((card) => observer.observe(card));
         });
@@ -368,7 +371,7 @@
                     <div class="relative overflow-hidden bg-stone-900 aspect-[9/16] sm:aspect-video">
                         <img src="https://drive.google.com/thumbnail?id=1DmlN-op0ESZe9VugGTDkkLjv4DsD06kF&sz=w1200" alt="វីដេអូអនុស្សាវរីយ៍ទី១" class="absolute inset-0 w-full h-full object-cover" loading="lazy">
                         <div class="absolute inset-0 bg-black/10 pointer-events-none"></div>
-                        <iframe id="memoryVideo1" class="absolute inset-0 w-full h-full hidden" src="about:blank" data-src="https://drive.google.com/file/d/1DmlN-op0ESZe9VugGTDkkLjv4DsD06kF/preview" title="Our Love Story Video 1" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy" referrerpolicy="no-referrer"></iframe>
+                        <iframe id="memoryVideo1" class="absolute inset-0 w-full h-full hidden" src="about:blank" data-src="https://drive.google.com/file/d/1DmlN-op0ESZe9VugGTDkkLjv4DsD06kF/preview" title="Our Love Story Video 1" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="eager" referrerpolicy="no-referrer"></iframe>
                         <button id="videoCover1" type="button" onclick="selectMemoryVideo(1)" aria-label="ចាក់វីដេអូអនុស្សាវរីយ៍ទី១" class="absolute inset-0 z-10 flex items-center justify-center bg-black/10 text-white">
                             <span class="flex items-center justify-center w-14 h-14 rounded-full bg-amber-500/90 border-2 border-white shadow-lg"><i class="fas fa-play text-xl ml-1"></i></span>
                         </button>
@@ -383,7 +386,7 @@
                     <div class="relative overflow-hidden bg-stone-900 aspect-[9/16] sm:aspect-video">
                         <img src="https://drive.google.com/thumbnail?id=17J_R4H3Ez-7Lt-tPWHZgvaansivxIk1y&sz=w1200" alt="វីដេអូអនុស្សាវរីយ៍ទី២" class="absolute inset-0 w-full h-full object-cover" loading="lazy">
                         <div class="absolute inset-0 bg-black/10 pointer-events-none"></div>
-                        <iframe id="memoryVideo2" class="absolute inset-0 w-full h-full hidden" src="about:blank" data-src="https://drive.google.com/file/d/17J_R4H3Ez-7Lt-tPWHZgvaansivxIk1y/preview" title="Our Love Story Video 2" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy" referrerpolicy="no-referrer"></iframe>
+                        <iframe id="memoryVideo2" class="absolute inset-0 w-full h-full hidden" src="about:blank" data-src="https://drive.google.com/file/d/17J_R4H3Ez-7Lt-tPWHZgvaansivxIk1y/preview" title="Our Love Story Video 2" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="eager" referrerpolicy="no-referrer"></iframe>
                         <button id="videoCover2" type="button" onclick="selectMemoryVideo(2)" aria-label="ចាក់វីដេអូអនុស្សាវរីយ៍ទី២" class="absolute inset-0 z-10 flex items-center justify-center bg-black/10 text-white">
                             <span class="flex items-center justify-center w-14 h-14 rounded-full bg-amber-500/90 border-2 border-white shadow-lg"><i class="fas fa-play text-xl ml-1"></i></span>
                         </button>
