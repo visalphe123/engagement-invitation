@@ -375,12 +375,17 @@
                 width: '0',
                 videoId: youtubeVideoId,
                 playerVars: {
-                    'autoplay': 0,
+                    'autoplay': 1,
+                    'playsinline': 1,
                     'controls': 0,
                     'loop': 1,
                     'playlist': youtubeVideoId
                 },
                 events: {
+                    'onReady': function(event) {
+                        // Attempt background music on page load. Browsers may require a user tap.
+                        event.target.playVideo();
+                    },
                     'onStateChange': onPlayerStateChange
                 }
             });
