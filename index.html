@@ -136,30 +136,63 @@
             }
         })();
 
-        // Only load one Google Drive video at a time. Selecting the other
-        // video unloads the previous iframe, stopping its playback.
+        // Auto-play a memory video when it scrolls into view.
+        // Stop/unload it when it leaves the viewport so only one video runs.
         let activeMemoryVideo = 0;
-        function selectMemoryVideo(number) {
-            const first = document.getElementById('memoryVideo1');
-            const second = document.getElementById('memoryVideo2');
-            if (!first || !second) return;
-            const chosen = number === 1 ? first : second;
-            const other = number === 1 ? second : first;
-            const chosenCover = document.getElementById('videoCover' + number);
-            const otherCover = document.getElementById('videoCover' + (number === 1 ? 2 : 1));
-            other.src = 'about:blank';
-            if (otherCover) otherCover.classList.remove('hidden');
-            if (activeMemoryVideo === number && chosen.src !== 'about:blank') {
-                chosen.src = 'about:blank';
-                if (chosenCover) chosenCover.classList.remove('hidden');
-                activeMemoryVideo = 0;
-                return;
+        const memoryVideoIds = [1, 2];
+
+        function startMemoryVideo(number) {
+            const frame = document.getElementById('memoryVideo' + number);
+            const cover = document.getElementById('videoCover' + number);
+            if (!frame) return;
+
+            memoryVideoIds.forEach((id) => {
+                if (id === number) return;
+                const other = document.getElementById('memoryVideo' + id);
+                const otherCover = document.getElementById('videoCover' + id);
+                if (other) other.src = 'about:blank';
+                if (otherCover) otherCover.classList.remove('hidden');
+            });
+
+            if (activeMemoryVideo !== number || frame.src === 'about:blank') {
+                frame.src = frame.dataset.src + '?autoplay=1';
+                frame.classList.remove('hidden');
+                if (cover) cover.classList.add('hidden');
+                activeMemoryVideo = number;
             }
-            // User gesture starts the Drive preview; autoplay is attempted where supported.
-            chosen.src = chosen.dataset.src + '?autoplay=1';
-            if (chosenCover) chosenCover.classList.add('hidden');
-            activeMemoryVideo = number;
         }
+
+        function stopMemoryVideo(number) {
+            const frame = document.getElementById('memoryVideo' + number);
+            const cover = document.getElementById('videoCover' + number);
+            if (frame && activeMemoryVideo === number) {
+                frame.src = 'about:blank';
+                frame.classList.add('hidden');
+                if (cover) cover.classList.remove('hidden');
+                activeMemoryVideo = 0;
+            }
+        }
+
+        function selectMemoryVideo(number) {
+            startMemoryVideo(number);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const videoArea = document.getElementById('loveVideoArea');
+            if (!videoArea || !('IntersectionObserver' in window)) return;
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    const number = Number(entry.target.dataset.memoryVideo);
+                    if (entry.isIntersecting && entry.intersectionRatio >= 0.55) {
+                        startMemoryVideo(number);
+                    } else if (activeMemoryVideo === number) {
+                        stopMemoryVideo(number);
+                    }
+                });
+            }, { threshold: [0, 0.55, 0.8] });
+
+            videoArea.querySelectorAll('[data-memory-video]').forEach((card) => observer.observe(card));
+        });
     </script>
 
     <!-- Hidden YouTube Player Container -->
@@ -329,30 +362,32 @@
             </div>
 
             <!-- Featured Memory Videos -->
-            <div id="loveVideoArea" class="grid grid-cols-1 gap-5 mb-7">
-                <article class="rounded-2xl overflow-hidden bg-white border border-amber-200 shadow-lg">
-                    <div class="relative bg-stone-900 aspect-[9/16] sm:aspect-video">
-                        <iframe id="memoryVideo1" class="absolute inset-0 w-full h-full" src="about:blank" data-src="https://drive.google.com/file/d/1DmlN-op0ESZe9VugGTDkkLjv4DsD06kF/preview" title="Our Love Story Video 1" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy" referrerpolicy="no-referrer"></iframe>
-                        <button id="videoCover1" type="button" onclick="selectMemoryVideo(1)" aria-label="ចាក់វីដេអូអនុស្សាវរីយ៍ទី១" class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-black/35 text-white">
-                            <span class="flex items-center justify-center w-24 h-24 rounded-full bg-amber-500/95 border-4 border-white shadow-2xl"><i class="fas fa-play text-4xl ml-2"></i></span>
-                            <span class="px-5 py-3 rounded-full bg-white text-amber-900 text-base sm:text-lg font-bold shadow-xl">ចុចទីនេះ ដើម្បីចាក់វីដេអូទី១</span>
+            <div id="loveVideoArea" class="grid grid-cols-1 gap-4 mb-7">
+                <article data-memory-video="1" class="rounded-2xl overflow-hidden bg-white border border-amber-200 shadow-md">
+                    <div class="relative overflow-hidden bg-stone-900 aspect-[9/16] sm:aspect-video">
+                        <img src="https://drive.google.com/thumbnail?id=1DmlN-op0ESZe9VugGTDkkLjv4DsD06kF&sz=w1200" alt="វីដេអូអនុស្សាវរីយ៍ទី១" class="absolute inset-0 w-full h-full object-cover" loading="lazy">
+                        <div class="absolute inset-0 bg-black/10 pointer-events-none"></div>
+                        <iframe id="memoryVideo1" class="absolute inset-0 w-full h-full hidden" src="about:blank" data-src="https://drive.google.com/file/d/1DmlN-op0ESZe9VugGTDkkLjv4DsD06kF/preview" title="Our Love Story Video 1" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy" referrerpolicy="no-referrer"></iframe>
+                        <button id="videoCover1" type="button" onclick="selectMemoryVideo(1)" aria-label="ចាក់វីដេអូអនុស្សាវរីយ៍ទី១" class="absolute inset-0 z-10 flex items-center justify-center bg-black/10 text-white">
+                            <span class="flex items-center justify-center w-14 h-14 rounded-full bg-amber-500/90 border-2 border-white shadow-lg"><i class="fas fa-play text-xl ml-1"></i></span>
                         </button>
                     </div>
-                    <div class="px-4 py-3 text-center">
+                    <div class="px-3 py-2 text-center">
                         <p class="font-moul text-sm text-amber-800">អនុស្សាវរីយ៍ដ៏មានន័យ</p>
                         <p class="text-[11px] text-stone-500 font-serif-luxury italic mt-1">A Beautiful Beginning</p>
                     </div>
                 </article>
 
-                <article class="rounded-2xl overflow-hidden bg-white border border-amber-200 shadow-lg">
-                    <div class="relative bg-stone-900 aspect-[9/16] sm:aspect-video">
-                        <iframe id="memoryVideo2" class="absolute inset-0 w-full h-full" src="about:blank" data-src="https://drive.google.com/file/d/17J_R4H3Ez-7Lt-tPWHZgvaansivxIk1y/preview" title="Our Love Story Video 2" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy" referrerpolicy="no-referrer"></iframe>
-                        <button id="videoCover2" type="button" onclick="selectMemoryVideo(2)" aria-label="ចាក់វីដេអូអនុស្សាវរីយ៍ទី២" class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-black/35 text-white">
-                            <span class="flex items-center justify-center w-24 h-24 rounded-full bg-amber-500/95 border-4 border-white shadow-2xl"><i class="fas fa-play text-4xl ml-2"></i></span>
-                            <span class="px-5 py-3 rounded-full bg-white text-amber-900 text-base sm:text-lg font-bold shadow-xl">ចុចទីនេះ ដើម្បីចាក់វីដេអូទី២</span>
+                <article data-memory-video="2" class="rounded-2xl overflow-hidden bg-white border border-amber-200 shadow-md">
+                    <div class="relative overflow-hidden bg-stone-900 aspect-[9/16] sm:aspect-video">
+                        <img src="https://drive.google.com/thumbnail?id=17J_R4H3Ez-7Lt-tPWHZgvaansivxIk1y&sz=w1200" alt="វីដេអូអនុស្សាវរីយ៍ទី២" class="absolute inset-0 w-full h-full object-cover" loading="lazy">
+                        <div class="absolute inset-0 bg-black/10 pointer-events-none"></div>
+                        <iframe id="memoryVideo2" class="absolute inset-0 w-full h-full hidden" src="about:blank" data-src="https://drive.google.com/file/d/17J_R4H3Ez-7Lt-tPWHZgvaansivxIk1y/preview" title="Our Love Story Video 2" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy" referrerpolicy="no-referrer"></iframe>
+                        <button id="videoCover2" type="button" onclick="selectMemoryVideo(2)" aria-label="ចាក់វីដេអូអនុស្សាវរីយ៍ទី២" class="absolute inset-0 z-10 flex items-center justify-center bg-black/10 text-white">
+                            <span class="flex items-center justify-center w-14 h-14 rounded-full bg-amber-500/90 border-2 border-white shadow-lg"><i class="fas fa-play text-xl ml-1"></i></span>
                         </button>
                     </div>
-                    <div class="px-4 py-3 text-center">
+                    <div class="px-3 py-2 text-center">
                         <p class="font-moul text-sm text-amber-800">ពេលវេលាដែលមិនអាចបំភ្លេចបាន</p>
                         <p class="text-[11px] text-stone-500 font-serif-luxury italic mt-1">Moments to Remember</p>
                     </div>
