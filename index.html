@@ -80,7 +80,7 @@
 
         /* Scroll-triggered romantic messages */
         .love-surprise-layer { position: fixed; inset: 0; z-index: 95; display: flex; align-items: center; justify-content: center; padding: 22px; pointer-events: none; opacity: 0; visibility: hidden; }
-        .love-surprise-layer.show { visibility: visible; animation: loveSurpriseFade 3s ease both; }
+        .love-surprise-layer.show { visibility: visible; animation-name: loveSurpriseFade; animation-timing-function: ease; animation-fill-mode: both; }
         .love-surprise-card { position: relative; max-width: 92vw; padding: 22px 24px; border: 1px solid rgba(245, 190, 205, .9); border-radius: 24px; background: linear-gradient(145deg, rgba(255,250,246,.96), rgba(255,235,240,.94)); box-shadow: 0 14px 50px rgba(100,35,55,.25); text-align: center; transform: scale(.78); animation: loveCardPop .55s cubic-bezier(.2,.9,.25,1.25) both; }
         .love-surprise-text { font-family: 'Moul', cursive; color: #9b3156; font-size: clamp(1.15rem, 5vw, 2rem); line-height: 1.9; text-shadow: 0 2px 0 #fff; animation: loveTextReveal .7s cubic-bezier(.2,.9,.25,1.2) both; }
         @keyframes loveTextReveal { 0% { opacity: 0; transform: translateY(14px) scale(.72); filter: blur(5px); } 75% { opacity: 1; transform: translateY(-2px) scale(1.04); filter: blur(0); } 100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
@@ -716,7 +716,7 @@
         window.onload = loadWishes;
     </script>
 
-    <!-- Scroll-triggered love messages: slideshow + photo gallery, each appears once for 5 seconds -->
+    <!-- Scroll-triggered love messages: 3 seconds for gallery sections, 5 seconds each for Contact -->
     <div id="loveSurpriseLayer" class="love-surprise-layer" aria-live="polite" aria-hidden="true">
         <div class="love-surprise-card"><div id="loveSurpriseText" class="love-surprise-text"></div></div>
     </div>
@@ -725,55 +725,76 @@
         const layer = document.getElementById('loveSurpriseLayer');
         const text = document.getElementById('loveSurpriseText');
         if (!layer || !text || !('IntersectionObserver' in window)) return;
+
         const played = new Set();
         let hideTimer = null;
-        function showLoveMessage(kind, message) {
+        let contactSequencePlayed = false;
+
+        function showLoveMessage(kind, message, durationMs) {
             if (played.has(kind)) return;
             played.add(kind);
             clearTimeout(hideTimer);
+
             layer.className = 'love-surprise-layer show ' + (kind === 'video' ? 'burst' : 'fly');
+            layer.style.animationDuration = (durationMs / 1000) + 's';
             text.textContent = message;
             layer.setAttribute('aria-hidden', 'false');
             layer.querySelectorAll('.love-particle').forEach(el => el.remove());
-            const symbols = kind === 'video' ? ['♥','♡','💗'] : ['💖','💗','💜','💛','💙','💚','❤️','💕'];
-            const count = kind === 'video' ? 22 : (kind === 'contactLove' ? 38 : 32);
+
+            const isBurst = kind === 'video';
+            const isContact = kind === 'contactBlessing' || kind === 'contactLove';
+            const symbols = isBurst
+                ? ['♥', '♡', '💗']
+                : ['💖', '💗', '💜', '💛', '💙', '💚', '❤️', '💕'];
+            const count = isBurst ? 22 : (isContact ? 38 : 32);
+
             for (let i = 0; i < count; i++) {
                 const particle = document.createElement('span');
                 particle.className = 'love-particle';
                 particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-                const angle = (Math.PI * 2 * i / count) + (Math.random() * .35);
-                const distance = kind === 'video' ? 100 + Math.random() * 190 : 100 + Math.random() * 230;
-                particle.style.setProperty('--dx', (Math.cos(angle) * distance) + 'px');
-                particle.style.setProperty('--dy', (kind === 'video' ? Math.sin(angle) : -Math.abs(Math.sin(angle)) - .45) * distance + 'px');
+
+                const angle = (Math.PI * 2 * i / count) + (Math.random() * 0.35);
+                const distance = isBurst ? 100 + Math.random() * 190 : 100 + Math.random() * 230;
+                const dx = Math.cos(angle) * distance;
+                const dy = isBurst
+                    ? Math.sin(angle) * distance
+                    : (-Math.abs(Math.sin(angle)) - 0.45) * distance;
+
+                particle.style.setProperty('--dx', dx + 'px');
+                particle.style.setProperty('--dy', dy + 'px');
                 particle.style.setProperty('--rot', ((Math.random() * 100) - 50) + 'deg');
-                particle.style.fontSize = (kind === 'video' ? 16 + Math.random() * 19 : 17 + Math.random() * 22) + 'px';
-                particle.style.color = ['#f43f75','#ec4899','#a855f7','#f59e0b','#3b82f6','#ef4444'][i % 6];
-                particle.style.animationDelay = (Math.random() * .28) + 's';
+                particle.style.fontSize = (isBurst ? 16 + Math.random() * 19 : 17 + Math.random() * 22) + 'px';
+                particle.style.color = ['#f43f75', '#ec4899', '#a855f7', '#f59e0b', '#3b82f6', '#ef4444'][i % 6];
+                particle.style.animationDelay = (Math.random() * 0.28) + 's';
                 layer.appendChild(particle);
             }
+
             hideTimer = setTimeout(() => {
                 layer.className = 'love-surprise-layer';
+                layer.style.animationDuration = '';
                 layer.setAttribute('aria-hidden', 'true');
                 layer.querySelectorAll('.love-particle').forEach(el => el.remove());
-            }, 5100);
+            }, durationMs);
         }
-        let contactSequencePlayed = false;
+
         const observer = new IntersectionObserver(entries => {
             entries.forEach(entry => {
                 if (!entry.isIntersecting) return;
+
                 if (entry.target.id === 'coupleSlideshow') {
-                    showLoveMessage('video', 'ខ្ញុំ ផែ វិសាល ស្រលាញ់អូន តី ណាស់');
+                    showLoveMessage('video', 'ខ្ញុំ ផែ វិសាល ស្រលាញ់អូន តី ណាស់', 7000);
                 } else if (entry.target.id === 'lovePhotoArea') {
-                    showLoveMessage('photo', 'បេះដូងនេះ ប្រគល់អោយអូនហើយ');
+                    showLoveMessage('photo', 'បេះដូងនេះ ប្រគល់អោយអូនហើយ', 7000);
                 } else if (entry.target.id === 'contactSection' && !contactSequencePlayed) {
                     contactSequencePlayed = true;
-                    showLoveMessage('contactBlessing', 'ជូនពរជួបតែសំណាងល្អ សូមអរគុណ');
+                    showLoveMessage('contactBlessing', 'ជូនពរជួបតែសំណាងល្អ សូមអរគុណ', 7000);
                     setTimeout(() => {
-                        showLoveMessage('contactLove', 'ជួបគ្នាឆាប់ៗ! ❤️');
-                    }, 5100);
+                        showLoveMessage('contactLove', 'ជួបគ្នាឆាប់ៗ! ❤️', 7000);
+                    }, 7000);
                 }
             });
         }, { threshold: 0.01, rootMargin: '-5% 0px -5% 0px' });
+
         const coupleSlideshow = document.getElementById('coupleSlideshow');
         const photoArea = document.getElementById('lovePhotoArea');
         const contactSection = document.getElementById('contactSection');
