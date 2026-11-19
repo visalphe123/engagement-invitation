@@ -726,7 +726,7 @@
         window.onload = loadWishes;
     </script>
 
-    <!-- Scroll-triggered love messages: slideshow + photo gallery, each appears once for 3 seconds -->
+    <!-- Scroll-triggered love messages: slideshow + photo gallery, each appears once for 5 seconds -->
     <div id="loveSurpriseLayer" class="love-surprise-layer" aria-live="polite" aria-hidden="true">
         <div class="love-surprise-card"><div id="loveSurpriseText" class="love-surprise-text"></div></div>
     </div>
@@ -765,7 +765,7 @@
                 layer.className = 'love-surprise-layer';
                 layer.setAttribute('aria-hidden', 'true');
                 layer.querySelectorAll('.love-particle').forEach(el => el.remove());
-            }, 3100);
+            }, 5100);
         }
         const observer = new IntersectionObserver(entries => {
             entries.forEach(entry => {
