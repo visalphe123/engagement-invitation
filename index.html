@@ -383,13 +383,35 @@
                 },
                 events: {
                     'onReady': function(event) {
-                        // Attempt background music on page load. Browsers may require a user tap.
+                        // Try autoplay on load. Audible autoplay may be blocked by the browser.
                         event.target.playVideo();
                     },
                     'onStateChange': onPlayerStateChange
                 }
             });
         }
+
+        // Start music on the visitor's first interaction anywhere on the invitation.
+        // Browsers generally require a user gesture before allowing audible playback.
+        let musicGestureBound = false;
+        function startMusicAfterFirstGesture() {
+            if (musicGestureBound) return;
+            musicGestureBound = true;
+            const startMusic = function() {
+                if (ytPlayer && typeof ytPlayer.playVideo === 'function' && !isPlaying) {
+                    ytPlayer.unMute();
+                    ytPlayer.setVolume(75);
+                    ytPlayer.playVideo();
+                }
+                document.removeEventListener('click', startMusic, true);
+                document.removeEventListener('touchstart', startMusic, true);
+                document.removeEventListener('keydown', startMusic, true);
+            };
+            document.addEventListener('click', startMusic, true);
+            document.addEventListener('touchstart', startMusic, {capture: true, passive: true});
+            document.addEventListener('keydown', startMusic, true);
+        }
+        startMusicAfterFirstGesture();
 
         function toggleAudio() {
             if (!ytPlayer || typeof ytPlayer.playVideo !== 'function') return;
