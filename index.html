@@ -533,7 +533,7 @@
                 width: '0',
                 videoId: youtubeVideoId,
                 playerVars: {
-                    'autoplay': 0,
+                    'autoplay': 1,
                     'playsinline': 1,
                     'controls': 0,
                     'loop': 1,
@@ -541,7 +541,10 @@
                 },
                 events: {
                     'onReady': function(event) {
-                        // Wait for the visitor's first interaction before starting music.
+                        // Attempt audible background music immediately when the page opens.
+                        event.target.unMute();
+                        event.target.setVolume(75);
+                        event.target.playVideo();
                     },
                     'onStateChange': onPlayerStateChange
                 }
@@ -568,37 +571,8 @@
             document.addEventListener('touchstart', startMusic, {capture: true, passive: true});
             document.addEventListener('keydown', startMusic, true);
         }
-        // Start background music automatically after the visitor scrolls past
-        // the video section. If the browser blocks audible autoplay, the music
-        // button remains available for a single tap.
-        (function startMusicAfterPassingVideos() {
-            const videoArea = document.getElementById('loveVideoArea');
-            if (!videoArea || !('IntersectionObserver' in window)) return;
-            let started = false;
-            const musicObserver = new IntersectionObserver(() => {
-                if (started) return;
-                const rect = videoArea.getBoundingClientRect();
-                if (rect.bottom < 0 && ytPlayer && typeof ytPlayer.playVideo === 'function') {
-                    started = true;
-                    ytPlayer.unMute();
-                    ytPlayer.setVolume(75);
-                    ytPlayer.playVideo();
-                    musicObserver.disconnect();
-                }
-            }, { threshold: 0 });
-            musicObserver.observe(videoArea);
-            window.addEventListener('scroll', () => {
-                if (started) return;
-                const rect = videoArea.getBoundingClientRect();
-                if (rect.bottom < 0 && ytPlayer && typeof ytPlayer.playVideo === 'function') {
-                    started = true;
-                    ytPlayer.unMute();
-                    ytPlayer.setVolume(75);
-                    ytPlayer.playVideo();
-                    musicObserver.disconnect();
-                }
-            }, { passive: true });
-        })();
+        // Background music attempts autoplay as soon as the YouTube player is ready.
+        // Browser autoplay policies may require one tap before audible playback.
 
         function toggleAudio() {
             if (!ytPlayer || typeof ytPlayer.playVideo !== 'function') return;
