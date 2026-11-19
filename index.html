@@ -726,7 +726,7 @@
         window.onload = loadWishes;
     </script>
 
-    <!-- Scroll-triggered love messages: each appears once for 3 seconds -->
+    <!-- Scroll-triggered love messages: slideshow + photo gallery, each appears once for 3 seconds -->
     <div id="loveSurpriseLayer" class="love-surprise-layer" aria-live="polite" aria-hidden="true">
         <div class="love-surprise-card"><div id="loveSurpriseText" class="love-surprise-text"></div></div>
     </div>
@@ -769,17 +769,17 @@
         }
         const observer = new IntersectionObserver(entries => {
             entries.forEach(entry => {
-                if (!entry.isIntersecting || entry.intersectionRatio < 0.22) return;
-                if (entry.target.id === 'loveVideoArea') {
+                if (!entry.isIntersecting) return;
+                if (entry.target.id === 'coupleSlideshow') {
                     showLoveMessage('video', 'ខ្ញុំ ផែ វិសាល ស្រលាញ់អូន តី ណាស់');
                 } else if (entry.target.id === 'lovePhotoArea') {
                     showLoveMessage('photo', 'បេះដូងនេះ ប្រគល់អោយអូនហើយ');
                 }
             });
-        }, { threshold: [0.12, 0.22], rootMargin: '-8% 0px -8% 0px' });
-        const videoArea = document.getElementById('loveVideoArea');
+        }, { threshold: 0.01, rootMargin: '-5% 0px -5% 0px' });
+        const coupleSlideshow = document.getElementById('coupleSlideshow');
         const photoArea = document.getElementById('lovePhotoArea');
-        if (videoArea) observer.observe(videoArea);
+        if (coupleSlideshow) observer.observe(coupleSlideshow);
         if (photoArea) observer.observe(photoArea);
     })();
     </script>
